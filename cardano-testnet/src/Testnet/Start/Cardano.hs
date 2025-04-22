@@ -293,8 +293,12 @@ cardanoTestnet' testnetOptions genesisOptions tmpAbsPath nodeConfigFile = do
     case cardanoNodes of
       UserProvidedNodeOptions _ -> do
         -- Only one node
-        port <- H.randomPort testnetDefaultIpv4Address
-        return [(Nothing, port)]
+        let foo = case cardanoDefaultTestnetNodeOptions of
+              AutomaticNodeOptions bar -> bar
+              _ -> undefined
+        forM foo (\a -> (Just a, ) <$> H.randomPort testnetDefaultIpv4Address)
+        -- port <- H.randomPort testnetDefaultIpv4Address
+        -- return [(Nothing, port)]
       AutomaticNodeOptions automatic -> do
         -- Possibly multiple nodes
         forM automatic (\a -> (Just a, ) <$> H.randomPort testnetDefaultIpv4Address)

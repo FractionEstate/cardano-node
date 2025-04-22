@@ -86,7 +86,7 @@ cardanoNumPools :: CardanoTestnetOptions -> NumPools
 cardanoNumPools CardanoTestnetOptions{cardanoNodes} =
   NumPools $
     case cardanoNodes of
-      UserProvidedNodeOptions _ -> 1
+      UserProvidedNodeOptions _ -> 3
       AutomaticNodeOptions opts -> length $ filter isSpoNodeOptions opts
 
 cardanoNumRelays :: CardanoTestnetOptions -> NumRelays
