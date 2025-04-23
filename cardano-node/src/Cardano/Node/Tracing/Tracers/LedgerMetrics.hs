@@ -29,6 +29,7 @@ import qualified Ouroboros.Network.AnchoredFragment as AF
 
 import           Control.Concurrent (threadDelay)
 import           Control.Concurrent.Async (async)
+import           Control.Monad (when)
 import           Control.Monad.Class.MonadAsync (link)
 import           Control.Monad.STM (atomically, retry)
 import           "contra-tracer" Control.Tracer (Tracer, traceWith)
@@ -57,16 +58,16 @@ startLedgerMetricsTracer tr everyNThSlot nodeKernelData = do
       go 1 SNothing
       where
         go :: Int -> StrictMaybe SlotNo -> IO ()
-        go !i !prevSlot = do
+        go !countdown !prevSlot = do
           !query <- waitForDifferentSlot prevSlot
           threadDelay $ 700 * 1000
           case query of
-            SJust slot'
-              | i `mod` everyNThSlot == 0 -> do
-                  traceLedgerMetrics nodeKernelData slot' tr
-                  go (i + 1) (SJust slot')
-              | otherwise -> go (i + 1) (SJust slot')
-            SNothing -> go i prevSlot
+            SJust slot' -> do
+              let nextCountdown = if countdown <= 1 then everyNThSlot else countdown - 1
+              when (countdown == 1) $
+                traceLedgerMetrics nodeKernelData slot' tr
+              go nextCountdown (SJust slot')
+            SNothing -> go countdown prevSlot
 
         waitForDifferentSlot :: StrictMaybe SlotNo -> IO (StrictMaybe SlotNo)
         waitForDifferentSlot prev = do
