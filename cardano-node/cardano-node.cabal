@@ -12,8 +12,15 @@ maintainer:             operations@iohk.io
 license:                Apache-2.0
 license-files:          LICENSE
                         NOTICE
-build-type:             Simple
+build-type:             Custom
 extra-doc-files:        ChangeLog.md
+extra-source-files:     proto/*.proto
+
+custom-setup
+  setup-depends:
+     base
+   , Cabal
+   , proto-lens-setup
 
 Flag unexpected_thunks
   Description:          Turn on unexpected thunks checks
@@ -88,6 +95,9 @@ library
                         Cardano.Node.Protocol.Shelley
                         Cardano.Node.Protocol.Types
                         Cardano.Node.Queries
+                        Cardano.Node.Rpc.Client
+                        Cardano.Node.Rpc.Proto.Api.Node
+                        Cardano.Node.Rpc.Server
                         Cardano.Node.Run
                         Cardano.Node.Startup
                         Cardano.Node.STM
@@ -138,6 +148,7 @@ library
                         Cardano.Tracing.Shutdown
                         Cardano.Tracing.Startup
                         Cardano.Tracing.Tracers
+                        Proto.Node
 
   other-modules:        Paths_cardano_node
   autogen-modules:      Paths_cardano_node
@@ -174,6 +185,7 @@ library
                       , ekg-core
                       , filepath
                       , formatting
+                      , grapesy
                       , generic-data
                       , hashable
                       , hostname
@@ -200,6 +212,8 @@ library
                       , ouroboros-network-protocols ^>= 0.14
                       , prettyprinter
                       , prettyprinter-ansi-terminal
+                      , proto-lens-protobuf-types
+                      , proto-lens-runtime
                       , psqueues
                       , random
                       , resource-registry
@@ -224,6 +238,8 @@ library
                       , typed-protocols >= 0.3
                       , typed-protocols-stateful >= 0.3
                       , yaml
+
+  build-tool-depends: proto-lens-protoc:proto-lens-protoc
 
 executable cardano-node
   import:               project-config
