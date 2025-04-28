@@ -69,7 +69,6 @@ import           Ouroboros.Network.TxSubmission.Inbound hiding (txId)
 import           Ouroboros.Network.TxSubmission.Outbound
 
 import           Control.Monad (guard)
-import           Control.Monad.Class.MonadTime.SI (Time (..))
 import           Data.Aeson (ToJSON, Value (..), toJSON, (.=))
 import qualified Data.Aeson as Aeson
 import           Data.Foldable (Foldable (toList))

@@ -35,7 +35,7 @@ import           Control.Monad.STM (atomically, retry)
 import           "contra-tracer" Control.Tracer (Tracer, traceWith)
 import           Data.Aeson (Value (Number, String), toJSON, (.=))
 import           Data.Text as Text
-import           GHC.Conc (labelThread, myThreadId, unsafeIOToSTM)
+import           GHC.Conc (labelThread, myThreadId)
 
 startLedgerMetricsTracer
   :: forall blk
@@ -75,9 +75,7 @@ startLedgerMetricsTracer tr everyNThSlot nodeKernelData = do
             mSlot <- getCurrentSlot (getBlockchainTime nk)
             case mSlot of
               CurrentSlot s' | SJust s' /= prev -> return s'
-              _ -> do
-                    unsafeIOToSTM ( threadDelay $ 1 * 1000)
-                    retry
+              _ -> retry
             ) nodeKernelData
 
 data LedgerMetrics =
