@@ -83,8 +83,8 @@ data LedgerMetrics =
         tsSlotNo       :: SlotNo
       , tsUtxoSize     :: Int
       , tsDelegMapSize :: Int
-      , tsDRepCount    :: Int
-      , tsDRepMapSize  :: Int
+--      , tsDRepCount    :: Int
+--      , tsDRepMapSize  :: Int
       , tsChainDensity :: Double
     }
 
@@ -102,22 +102,22 @@ traceLedgerMetrics ::
 traceLedgerMetrics nodeKern slotNo tracer = do
   query <- mapNodeKernelDataIO
               (\nk ->
-                (,,,,)
+                (,,) -- (,,,,)
                   <$> nkQueryLedger (ledgerUtxoSize . ledgerState) nk
                   <*> nkQueryLedger (ledgerDelegMapSize . ledgerState) nk
-                  <*> nkQueryLedger (ledgerDRepCount . ledgerState) nk
-                  <*> nkQueryLedger (ledgerDRepMapSize . ledgerState) nk
+--                  <*> nkQueryLedger (ledgerDRepCount . ledgerState) nk
+--                  <*> nkQueryLedger (ledgerDRepMapSize . ledgerState) nk
                   <*> nkQueryChain fragmentChainDensity nk)
               nodeKern
   case query of
     SNothing -> pure ()
-    SJust (utxoSize, delegMapSize, drepCount, drepMapSize, chainDensity) ->
+    SJust (utxoSize, delegMapSize, {- drepCount, drepMapSize, -} chainDensity) ->
         let msg = LedgerMetrics
                     slotNo
                     utxoSize
                     delegMapSize
-                    drepCount
-                    drepMapSize
+--                    drepCount
+--                    drepMapSize
                     (fromRational chainDensity)
         in traceWith tracer msg
 
@@ -131,22 +131,23 @@ instance LogFormatting LedgerMetrics where
                 , "slot" .= toJSON (unSlotNo tsSlotNo)
                 , "utxoSize" .= Number (fromIntegral tsUtxoSize)
                 , "delegMapSize" .= Number (fromIntegral tsDelegMapSize)
-                , "drepCount" .= Number (fromIntegral tsDRepCount)
-                , "drepMapSize" .= Number (fromIntegral tsDRepMapSize)
+--                , "drepCount" .= Number (fromIntegral tsDRepCount)
+--                , "drepMapSize" .= Number (fromIntegral tsDRepMapSize)
                 , "chainDensity" .= Number (fromRational (toRational tsChainDensity))
                 ]
   forHuman LedgerMetrics {..} =
       "Ledger metrics "
       <> " utxoSize "     <> showT tsUtxoSize
       <> " delegMapSize " <> showT tsDelegMapSize
-      <> " drepCount"     <> showT tsDRepCount
-      <> " drepMapSize"   <> showT tsDRepMapSize
+--      <> " drepCount"     <> showT tsDRepCount
+--      <> " drepMapSize"   <> showT tsDRepMapSize
       <> " chainDensity " <> showT tsChainDensity
   asMetrics LedgerMetrics {..} =
     [ IntM "utxoSize"     (fromIntegral tsUtxoSize)
     , IntM "delegMapSize" (fromIntegral tsDelegMapSize)
-    , IntM "drepCount"    (fromIntegral tsDRepCount)
-    , IntM "drepMapSize"  (fromIntegral tsDRepMapSize)]
+--    , IntM "drepCount"    (fromIntegral tsDRepCount)
+--    , IntM "drepMapSize"  (fromIntegral tsDRepMapSize)
+    ]
 
 
 instance MetaTrace LedgerMetrics where
@@ -157,8 +158,8 @@ instance MetaTrace LedgerMetrics where
   metricsDocFor (Namespace _ ["LedgerMetrics"]) =
       [ ("utxoSize",      "Size of the current UTxO set (number of entries)")
       , ("delegMapSize",  "Size of the delegation map (number of delegators)")
-      , ("drepCount",     "Number of active DReps (Delegated Representatives)")
-      , ("drepMapSize",   "Size of the DRep map (number of stake keys mapped to DReps)")
+--      , ("drepCount",     "Number of active DReps (Delegated Representatives)")
+--      , ("drepMapSize",   "Size of the DRep map (number of stake keys mapped to DReps)")
       ]
   metricsDocFor _ = []
 
