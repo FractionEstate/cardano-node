@@ -172,6 +172,7 @@ library
                       , dns
                       , ekg-wai
                       , ekg-core
+                      , extra
                       , filepath
                       , formatting
                       , generic-data
@@ -263,6 +264,7 @@ test-suite cardano-node-test
                       , cardano-protocol-tpraos
                       , cardano-node
                       , cardano-slotting
+                      , data-default-class
                       , directory
                       , filepath
                       , hedgehog
