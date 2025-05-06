@@ -8,7 +8,7 @@
 import           Cardano.Api (ExceptT, SlotNo (..), runExceptT)
 
 import           Cardano.Analysis.API.Ground (JsonInputFile (..))
-import           Cardano.Analysis.Quick.Types ()
+import           Cardano.Analysis.Quick.Types
 import           Cardano.Analysis.Reducer
 import           Cardano.Analysis.Reducer.Util
 import           Cardano.Unlog.BackendDB
@@ -23,6 +23,7 @@ import           Data.Bifunctor
 import qualified Data.ByteString as B
 import           Data.Either
 import           Data.Function (on)
+import           Data.Kind
 import           Data.List (find, isSuffixOf)
 import           Data.List.Extra (splitOn)
 import           Data.Map.Strict as Map (restrictKeys, (!))
@@ -133,7 +134,7 @@ runPlot plotData =
       , "set ytics nomirror"
       ]
 
-runOnRun :: forall l. LoadFromDB l => l -> FilePath -> [String] -> IO (RunLogs [LoadResult l])
+runOnRun :: forall l. LoadFromRunData l => l -> FilePath -> [String] -> IO (RunLogs [LoadResult l])
 runOnRun loadFromDB logManifest onlyHosts =
   runExceptT go >>= either error pure
   where
@@ -185,41 +186,42 @@ selectMempoolTxs =
 toDouble :: [(SlotNo, a)] -> [(Double, a)]
 toDouble = map (first (fromIntegral . unSlotNo))
 
-{-
-  This should eventually be part of a QuickQuery typeclass. This class is defined by:
-  - a query + (possibly parametrizable) filter, making use of the LoadFromDB typeclass
-  - a (possibly parametrizable) reducer, making use of the Reducer typeclass
-  - meaningful stdout output
-  - optionally: file output, like e.g. CSV
-  - optionally: a plot / plots
--}
 
-data LoadHeapData = LoadHeapData
+instance QuickQuery LoadResourceData where
+  qqQuery _ _env = undefined
+
+
+data LoadResourceData = LoadHeapData
 
 
 -- TODO: use timestamp to infer slot numbers during startup
-instance LoadFromDB LoadHeapData where
-  type instance LoadResult LoadHeapData = Either Word64 SlotNo
+instance LoadFromRunData LoadResourceData where
+  type instance LoadResult LoadResourceData = Either Word64 SlotNo
 
-  loadQuery _ = Just "SELECT at, slot, null as heap FROM slot UNION SELECT at, null, heap FROM resource ORDER BY at ASC"
+  loadQuery resource = LoadRunDataSQL $
+    "SELECT at, slot, null as res FROM slot UNION SELECT at, null, " <> columnName <> " as res FROM resource ORDER BY at ASC"
+    where
+      columnName = case resource of
+        LoadHeapData  -> "heap"
 
   loadConvert _ _ = \case
-    [_, slot_, heap_] ->
+    [_, slot_, res_] ->
       let
         slot :: SMaybe SlotNo
         slot = fromSqlData slot_
-        heap :: SMaybe Word64
-        heap = fromSqlData heap_
-      in smaybe (Left $ unsafeFromSJust heap) Right slot
-    _ -> error "loadConvert(LoadHeapData): expected 3 result columns"
+        res :: SMaybe Word64
+        res = fromSqlData res_
+      in smaybe (Left $ unsafeFromSJust res) Right slot
+    _ -> error "loadConvert(LoadHeLoadResourceData): expected 3 result columns"
 
 
 data LoadTimestamps = LoadTimestamps
 
-instance LoadFromDB LoadTimestamps where
+instance LoadFromRunData LoadTimestamps where
   type instance LoadResult LoadTimestamps = (UTCTime, SMaybe SlotNo)
 
-  loadQuery _ = Just $ "SELECT at, slot FROM slot" <> from "resource" <> from "txns" <> from "event" <> " ORDER BY at ASC"
+  loadQuery _ = LoadRunDataSQL $
+    "SELECT at, slot FROM slot" <> from "resource" <> from "txns" <> from "event" <> " ORDER BY at ASC"
     where from t = " UNION SELECT at, null FROM " <> t
 
   loadConvert _ _ = \case
