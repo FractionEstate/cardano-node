@@ -226,7 +226,6 @@ in {
         type = types.package;
         default = if (cfg.profiling != "none")
           then cfg.cardanoNodePackages.cardano-node.passthru.profiled
-          else if cfg.eventlog then cfg.cardanoNodePackages.cardano-node.passthru.eventlogged
           else if cfg.asserts then cfg.cardanoNodePackages.cardano-node.passthru.asserted
           else cfg.cardanoNodePackages.cardano-node;
         defaultText = "cardano-node";
@@ -323,7 +322,7 @@ in {
       ipv6HostAddr = mkOption {
         type = funcToOr nullOrStr;
         default = _: null;
-        apply = ip: if (builtins.isFunction ip) then ip else _: ip;
+        apply = ip: if (lib.isFunction ip) then ip else _: ip;
         description = ''
           The ipv6 host address to bind to. Set to null to disable.
         '';
@@ -348,7 +347,7 @@ in {
       stateDir = mkOption {
         type = funcToOr types.str;
         default = "${cfg.stateDirBase}cardano-node";
-        apply = x : if (builtins.isFunction x) then x else i: x;
+        apply = x : if (lib.isFunction x) then x else i: x;
         description = ''
           Directory to store blockchain data, for each instance.
         '';
@@ -365,7 +364,7 @@ in {
       runtimeDir = mkOption {
         type = funcToOr nullOrStr;
         default = i: ''${cfg.runDirBase}${suffixDir "cardano-node" i}'';
-        apply = x : if builtins.isFunction x then x else if x == null then _: null else "${cfg.runDirBase}${suffixDir "cardano-node" x}";
+        apply = x : if lib.isFunction x then x else if x == null then _: null else "${cfg.runDirBase}${suffixDir "cardano-node" x}";
         description = ''
           Runtime directory relative to ${cfg.runDirBase}, for each instance
         '';
@@ -374,14 +373,14 @@ in {
       databasePath = mkOption {
         type = funcToOr types.str;
         default = i : "${cfg.stateDir i}/${cfg.dbPrefix i}";
-        apply = x : if builtins.isFunction x then x else _ : x;
+        apply = x : if lib.isFunction x then x else _ : x;
         description = ''Node database path, for each instance.'';
       };
 
       lmdbDatabasePath = mkOption {
         type = funcToOr nullOrStr;
         default = null;
-        apply = x : if builtins.isFunction x then x else if x == null then _: null else _: x;
+        apply = x : if lib.isFunction x then x else if x == null then _: null else _: x;
         description = ''
           Node UTxO-HD LMDB path for performant disk I/O, for each instance.
           This could point to a direct-access SSD, with a specifically created journal-less file system and optimized mount options.
@@ -391,14 +390,14 @@ in {
       socketPath = mkOption {
         type = funcToOr types.str;
         default = i : "${runtimeDir i}/node.socket";
-        apply = x : if builtins.isFunction x then x else _ : x;
+        apply = x : if lib.isFunction x then x else _ : x;
         description = ''Local communication socket path, for each instance.'';
       };
 
       tracerSocketPathAccept = mkOption {
         type = funcToOr nullOrStr;
         default = null;
-        apply = x : if builtins.isFunction x then x else _ : x;
+        apply = x : if lib.isFunction x then x else _ : x;
         description = ''
           Listen for incoming cardano-tracer connection on a local socket,
           for each instance.
@@ -408,7 +407,7 @@ in {
       tracerSocketPathConnect = mkOption {
         type = funcToOr nullOrStr;
         default = null;
-        apply = x : if builtins.isFunction x then x else _ : x;
+        apply = x : if lib.isFunction x then x else _ : x;
         description = ''
           Connect to cardano-tracer listening on a local socket,
           for each instance.
@@ -456,7 +455,7 @@ in {
       dbPrefix = mkOption {
         type = types.either types.str (types.functionTo types.str);
         default = suffixDir "db-${cfg.environment}";
-        apply = x : if builtins.isFunction x then x else suffixDir x;
+        apply = x : if lib.isFunction x then x else suffixDir x;
         description = ''
           Prefix of database directories inside `stateDir`.
           (eg. for "db", there will be db-0, etc.).
@@ -679,7 +678,7 @@ in {
       withUtxoHdLmdb = mkOption {
         type = funcToOr types.bool;
         default = false;
-        apply = x: if builtins.isFunction x then x else _: x;
+        apply = x: if lib.isFunction x then x else _: x;
         description = ''On an UTxO-HD enabled node, the in-memory backend is the default. This activates the on-disk backend (LMDB) instead.'';
       };
 
@@ -726,7 +725,7 @@ in {
         type = funcToOr nullOrStr;
         default = null;
         example = i: "/etc/cardano-node/peer-snapshot-${toString i}.json";
-        apply = x: if builtins.isFunction x then x else _: x;
+        apply = x: if lib.isFunction x then x else _: x;
         description = ''
           If set, cardano-node will load a peer snapshot file from the declared absolute path.
 

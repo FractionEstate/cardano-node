@@ -130,10 +130,10 @@
       // (with project.hsPkgs; {
         # Add some executables from other relevant packages
         inherit (bech32.components.exes) bech32;
-        inherit (ouroboros-consensus-cardano.components.exes) db-analyser db-synthesizer db-truncater;
+        inherit (ouroboros-consensus-cardano.components.exes) db-analyser db-synthesizer db-truncater snapshot-converter;
         # Add cardano-node and cardano-cli with their git revision stamp.
         # Keep available an alternative without the git revision, like the other
-        # passthru (profiled, asserted and eventlogged in nix/haskell.nix) that
+        # passthru (profiled and asserted in nix/haskell.nix) that
         # have no git revision but for the same compilation alternative.
         cardano-node =
           let node = project.exes.cardano-node;
@@ -330,6 +330,8 @@
                     #
                     # It stands to question though, whether or not we want those to be
                     # in the cardano-node-linux as executables anyway?
+                    #
+                    # Also explicitly excluded from musl in nix/haskell.nix.
                     removeAttrs projectExes ["tx-generator" "gen-plutus"]
                   );
                 };
@@ -387,7 +389,7 @@
             # FIXME: plutus-scripts-bench's gen-plutus does not compile for musl
             "musl\\.(.*\\.)?tx-generator.*"
             "musl\\.(.*\\.)?gen-plutus.*"
-            # hlint required status is controled via the github action:
+            # hlint required status is controlled via the github action:
             "native\\.(.*\\.)?checks/hlint"
             # system-tests are build and run separately:
             "native\\.(.*\\.)?system-tests"
